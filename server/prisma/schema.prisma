@@ -1,0 +1,386 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  OWNER
+  HELPER
+  ADMIN
+}
+
+enum VerificationStatus {
+  PENDING
+  UNDER_REVIEW
+  VERIFIED
+  REJECTED
+  SUSPENDED
+}
+
+enum ServiceCategory {
+  BASIC_CARE
+  MEDICAL_HEALTH
+  TRANSPORTATION
+  EMERGENCY
+  OTHER
+}
+
+enum ServiceType {
+  // Basic Care
+  DOG_WALKING
+  PET_SITTING
+  FEEDING
+  GROOMING
+  BATHING
+  PET_BOARDING
+
+  // Medical / Health
+  VET_CONSULTATION
+  VET_VISIT_ASSISTANCE
+  MEDICINE_PICKUP
+  MEDICINE_ADMINISTRATION
+  POST_SURGERY_CARE
+  HEALTH_CHECK_ASSISTANCE
+
+  // Transportation
+  VET_TRANSPORTATION
+  PET_PICKUP_DROP
+  EMERGENCY_TRANSPORTATION
+
+  // Emergency
+  EMERGENCY_VET_ASSISTANCE
+  EMERGENCY_CHECK_IN
+  LOST_PET_ASSISTANCE
+
+  // Other
+  CUSTOM_REQUEST
+  OTHER
+}
+
+enum RequestStatus {
+  DRAFT
+  OPEN
+  ACCEPTED
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  EXPIRED
+  REJECTED
+  DISPUTED
+}
+
+enum BookingStatus {
+  CONFIRMED
+  HELPER_ON_THE_WAY
+  IN_PROGRESS
+  COMPLETED
+  CUSTOMER_CONFIRMED
+  CANCELLED
+  DISPUTED
+}
+
+enum ReportStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+  DISMISSED
+}
+
+enum ReportReason {
+  INAPPROPRIATE_BEHAVIOR
+  FRAUD
+  UNSAFE_BEHAVIOR
+  FAKE_PROFILE
+  OTHER
+}
+
+enum NotificationType {
+  REQUEST_CREATED
+  REQUEST_ACCEPTED
+  OFFER_RECEIVED
+  BOOKING_CONFIRMED
+  HELPER_ON_THE_WAY
+  BOOKING_IN_PROGRESS
+  BOOKING_COMPLETED
+  CUSTOMER_CONFIRMED
+  BOOKING_CANCELLED
+  BOOKING_DISPUTED
+  NEW_MESSAGE
+  NEW_REVIEW
+  EMERGENCY_ALERT
+  VERIFICATION_UPDATE
+  SYSTEM
+}
+
+model User {
+  id              String   @id @default(uuid())
+  name            String
+  email           String   @unique
+  phone           String?
+  passwordHash    String
+  role            Role     @default(CUSTOMER)
+  profileImage    String?
+  location        String?
+  latitude        Float?
+  longitude       Float?
+  isSuspended     Boolean  @default(false)
+  onboardingNeeds String[] @default([])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  helperProfile    HelperProfile?
+  pets             Pet[]
+  serviceRequests  ServiceRequest[]
+  ownerBookings    Booking[]        @relation("OwnerBookings")
+  helperBookings   Booking[]        @relation("HelperBookings")
+  helperOffers     HelperOffer[]
+  givenReviews     Review[]         @relation("GivenReviews")
+  receivedReviews  Review[]         @relation("ReceivedReviews")
+  sentMessages     Message[]        @relation("SentMessages")
+  receivedMessages Message[]        @relation("ReceivedMessages")
+  filedReports     Report[]         @relation("FiledReports")
+  receivedReports  Report[]         @relation("ReceivedReports")
+  adminAuditLogs   AuditLog[]
+  notifications    Notification[]
+  refreshTokens    RefreshToken[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model HelperProfile {
+  id                 String             @id @default(uuid())
+  userId             String             @unique
+  bio                String?
+  experience         String?
+  skills             String[]           @default([])
+  hourlyRate         Float              @default(25.0)
+  serviceRadius      Float              @default(15.0) // In kilometers
+  services           ServiceType[]
+  pricing            Json? // Map of ServiceType to custom rate
+  workingDays        String[]           @default(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"])
+  workingHours       Json? // Working hours array
+  maxBookingsPerDay  Int                @default(5)
+  isAvailable        Boolean            @default(true)
+  verificationStatus VerificationStatus @default(PENDING)
+  governmentIdUrl    String?
+  certificationUrl   String?
+  rating             Float              @default(5.0)
+  totalReviews       Int                @default(0)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([verificationStatus])
+  @@index([isAvailable])
+}
+
+model Pet {
+  id                  String   @id @default(uuid())
+  ownerId             String
+  name                String
+  species             String
+  breed               String?
+  age                 Int?
+  gender              String?
+  weight              Float?
+  description         String?
+  medicalConditions   String?
+  allergies           String?
+  vaccinations        String?
+  medications         String?
+  specialInstructions String?
+  behaviorNotes       String?
+  emergencyNotes      String?
+  image               String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  owner           User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  serviceRequests ServiceRequest[]
+
+  @@index([ownerId])
+}
+
+model ServiceRequest {
+  id              String          @id @default(uuid())
+  ownerId         String
+  petId           String
+  category        ServiceCategory @default(BASIC_CARE)
+  serviceType     ServiceType
+  title           String
+  description     String
+  location        String
+  latitude        Float
+  longitude       Float
+  scheduledDate   DateTime
+  startTime       String
+  endTime         String?
+  budget          Float
+  isEmergency     Boolean         @default(false)
+  medicineDetails Json? // Medicine name, dosage, frequency, etc.
+  customFields    Json?
+  status          RequestStatus   @default(OPEN)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  owner    User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  pet      Pet           @relation(fields: [petId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+  offers   HelperOffer[]
+
+  @@index([ownerId])
+  @@index([petId])
+  @@index([status])
+  @@index([category])
+  @@index([serviceType])
+  @@index([isEmergency])
+  @@index([latitude, longitude])
+}
+
+model HelperOffer {
+  id           String   @id @default(uuid())
+  requestId    String
+  helperId     String
+  offeredPrice Float
+  proposedTime String?
+  note         String?
+  status       String   @default("PENDING") // PENDING, ACCEPTED, DECLINED
+  createdAt    DateTime @default(now())
+
+  request ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  helper  User           @relation(fields: [helperId], references: [id], onDelete: Cascade)
+
+  @@index([requestId])
+  @@index([helperId])
+}
+
+model Booking {
+  id          String        @id @default(uuid())
+  requestId   String
+  ownerId     String
+  helperId    String
+  agreedPrice Float
+  status      BookingStatus @default(CONFIRMED)
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  request  ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  owner    User           @relation("OwnerBookings", fields: [ownerId], references: [id], onDelete: Cascade)
+  helper   User           @relation("HelperBookings", fields: [helperId], references: [id], onDelete: Cascade)
+  reviews  Review[]
+  messages Message[]
+
+  @@index([requestId])
+  @@index([ownerId])
+  @@index([helperId])
+  @@index([status])
+}
+
+model Review {
+  id              String   @id @default(uuid())
+  bookingId       String
+  reviewerId      String
+  reviewedUserId  String
+  rating          Int
+  comment         String?
+  serviceFeedback String?
+  createdAt       DateTime @default(now())
+
+  booking      Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  reviewer     User    @relation("GivenReviews", fields: [reviewerId], references: [id], onDelete: Cascade)
+  reviewedUser User    @relation("ReceivedReviews", fields: [reviewedUserId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@index([reviewerId])
+  @@index([reviewedUserId])
+}
+
+model Message {
+  id         String    @id @default(uuid())
+  senderId   String
+  receiverId String
+  bookingId  String
+  message    String
+  imageUrl   String?
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  sender   User    @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User    @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  booking  Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@index([senderId, receiverId])
+}
+
+model Report {
+  id              String       @id @default(uuid())
+  reporterId      String
+  reportedUserId  String
+  reason          ReportReason
+  description     String
+  status          ReportStatus @default(OPEN)
+  resolutionNotes String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  reporter     User @relation("FiledReports", fields: [reporterId], references: [id], onDelete: Cascade)
+  reportedUser User @relation("ReceivedReports", fields: [reportedUserId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([reportedUserId])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  adminId    String
+  action     String
+  targetType String
+  targetId   String?
+  details    Json?
+  createdAt  DateTime @default(now())
+
+  admin User @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId])
+  @@index([action])
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  type      NotificationType
+  title     String
+  message   String
+  data      Json?
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+}

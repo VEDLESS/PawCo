@@ -1,0 +1,36 @@
+{
+  "name": "petco-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PetCo - Cross-Platform Hyperlocal Pet Care Marketplace",
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "server"
+  ],
+  "scripts": {
+    "dev:server": "npm run dev --workspace=server",
+    "dev:web": "npm run dev --workspace=apps/web",
+    "dev:mobile": "npm run start --workspace=apps/mobile",
+    "build:shared": "npm run build --workspace=packages/shared",
+    "build:server": "npm run build --workspace=server",
+    "build:web": "npm run build --workspace=apps/web",
+    "db:generate": "npm run prisma:generate --workspace=server",
+    "db:migrate": "npm run prisma:migrate --workspace=server",
+    "db:seed": "npm run prisma:seed --workspace=server",
+    "test:server": "npm run test --workspace=server"
+  },
+  "keywords": [
+    "petco",
+    "pet-care",
+    "marketplace",
+    "nextjs",
+    "react-native",
+    "express",
+    "prisma",
+    "postgresql",
+    "socketio"
+  ],
+  "author": "PetCo Team",
+  "license": "MIT"
+}
