@@ -2,6 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { AuthProvider } from '@/context/AuthContext';
 import { SocketProvider } from '@/context/SocketContext';
+import { AuthModal } from '@/components/modals/AuthModal';
 
 export const metadata: Metadata = {
   title: 'PawCo — Hyperlocal Pet Care Marketplace',
@@ -26,7 +27,10 @@ export default function RootLayout({
       </head>
       <body className="font-sans antialiased bg-slate-50 text-slate-900 min-h-screen flex flex-col justify-between">
         <AuthProvider>
-          <SocketProvider>{children}</SocketProvider>
+          <SocketProvider>
+            {children}
+            <AuthModal />
+          </SocketProvider>
         </AuthProvider>
       </body>
     </html>

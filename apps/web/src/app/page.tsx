@@ -2,6 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/Button';
@@ -33,6 +35,17 @@ import {
 } from 'lucide-react';
 
 export default function HomePage() {
+  const { user, openAuthModal } = useAuth();
+  const router = useRouter();
+
+  const handleProtectedAction = (destination: string, mode: 'LOGIN' | 'REGISTER' = 'LOGIN') => {
+    if (user) {
+      router.push(destination);
+    } else {
+      openAuthModal(mode, () => router.push(destination));
+    }
+  };
+
   const serviceCategories = [
     {
       title: 'Dog Walking & Park Runs',
@@ -165,17 +178,22 @@ export default function HomePage() {
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-3.5 pt-2">
-                <Link href="/dashboard/owner/requests/new">
-                  <Button size="lg" className="w-full sm:w-auto shadow-md shadow-teal-900/15">
-                    Request Care for Your Pet
-                    <ArrowRight className="w-4 h-4 ml-1" />
-                  </Button>
-                </Link>
-                <Link href="/register?role=HELPER">
-                  <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                    Become a Verified Helper
-                  </Button>
-                </Link>
+                <Button
+                  size="lg"
+                  className="w-full sm:w-auto shadow-md shadow-teal-900/15"
+                  onClick={() => handleProtectedAction('/dashboard/owner/requests/new')}
+                >
+                  Request Care for Your Pet
+                  <ArrowRight className="w-4 h-4 ml-1" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full sm:w-auto"
+                  onClick={() => handleProtectedAction('/dashboard/helper/profile', 'REGISTER')}
+                >
+                  Become a Verified Helper
+                </Button>
               </div>
 
               {/* Trust Badges */}
@@ -261,11 +279,14 @@ export default function HomePage() {
                     <p className="text-xs text-stone-600 leading-relaxed">{s.desc}</p>
                   </div>
 
-                  <Link href="/dashboard/owner/requests/new" className="pt-2">
+                  <button
+                    onClick={() => handleProtectedAction('/dashboard/owner/requests/new')}
+                    className="pt-2 text-left focus:outline-none"
+                  >
                     <span className="text-xs font-bold text-teal-700 hover:text-teal-800 flex items-center gap-1">
                       Request this service <ArrowRight className="w-3.5 h-3.5" />
                     </span>
-                  </Link>
+                  </button>
                 </Card>
               );
             })}
@@ -288,11 +309,13 @@ export default function HomePage() {
                 Background-checked, identity verified, and trusted by pet parents across San Francisco.
               </p>
             </div>
-            <Link href="/dashboard/owner/helpers">
-              <Button variant="outline" size="sm">
-                Browse All Helpers <ArrowRight className="w-3.5 h-3.5 ml-1" />
-              </Button>
-            </Link>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleProtectedAction('/dashboard/owner/helpers')}
+            >
+              Browse All Helpers <ArrowRight className="w-3.5 h-3.5 ml-1" />
+            </Button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -331,11 +354,13 @@ export default function HomePage() {
                     <span className="text-stone-400 font-semibold block text-[11px]">Hourly Rate</span>
                     <span className="font-black text-slate-900 text-base">{h.rate}</span>
                   </div>
-                  <Link href="/dashboard/owner/requests/new">
-                    <Button size="sm" className="text-xs">
-                      Book {h.name.split(' ')[0]}
-                    </Button>
-                  </Link>
+                  <Button
+                    size="sm"
+                    className="text-xs"
+                    onClick={() => handleProtectedAction('/dashboard/owner/requests/new')}
+                  >
+                    Book {h.name.split(' ')[0]}
+                  </Button>
                 </div>
               </Card>
             ))}

@@ -20,10 +20,10 @@ function NavigationRoot() {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!user ? (
-          <>
+          <Stack.Group screenOptions={{ presentation: 'modal', animation: 'slide_from_bottom' }}>
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Register" component={RegisterScreen} />
-          </>
+          </Stack.Group>
         ) : user.role === Role.HELPER ? (
           <>
             <Stack.Screen name="HelperHome" component={HelperHomeScreen} />

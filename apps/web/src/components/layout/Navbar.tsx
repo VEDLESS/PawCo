@@ -8,7 +8,7 @@ import { Avatar } from '../ui/Avatar';
 import { Bell, Heart, LogOut, Menu, PawPrint, User as UserIcon, X, PlusCircle, Compass, ShieldCheck } from 'lucide-react';
 
 export const Navbar = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, openAuthModal } = useAuth();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useSocket();
   const [showNotifications, setShowNotifications] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -27,7 +27,7 @@ export const Navbar = () => {
           </div>
           <div>
             <span className="text-xl font-black tracking-tight text-slate-900 flex items-center gap-1">
-              Pet<span className="text-teal-700">Co</span>
+              Paw<span className="text-teal-700">Co</span>
             </span>
             <span className="text-[9px] block -mt-1 font-extrabold text-stone-400 uppercase tracking-widest">
               Neighborhood Pet Care
@@ -187,16 +187,18 @@ export const Navbar = () => {
             </>
           ) : (
             <div className="flex items-center gap-2">
-              <Link href="/login">
-                <button className="px-3.5 py-1.5 text-xs font-bold text-slate-700 hover:text-slate-900 rounded-xl hover:bg-stone-100 transition-colors">
-                  Sign In
-                </button>
-              </Link>
-              <Link href="/register">
-                <button className="px-4 py-2 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold rounded-xl shadow-sm shadow-teal-900/15 transition-all active:scale-[0.98]">
-                  Join PawCo
-                </button>
-              </Link>
+              <button
+                onClick={() => openAuthModal('LOGIN')}
+                className="px-3.5 py-1.5 text-xs font-bold text-slate-700 hover:text-slate-900 rounded-xl hover:bg-stone-100 transition-colors"
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => openAuthModal('REGISTER')}
+                className="px-4 py-2 bg-teal-800 hover:bg-teal-900 text-white text-xs font-bold rounded-xl shadow-sm shadow-teal-900/15 transition-all active:scale-[0.98]"
+              >
+                Join PawCo
+              </button>
             </div>
           )}
 
@@ -276,16 +278,24 @@ export const Navbar = () => {
             </>
           ) : (
             <div className="pt-2 flex flex-col gap-2">
-              <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-                <button className="w-full py-2 text-xs font-bold text-slate-700 bg-stone-100 rounded-xl">
-                  Sign In
-                </button>
-              </Link>
-              <Link href="/register" onClick={() => setMobileMenuOpen(false)}>
-                <button className="w-full py-2 text-xs font-bold text-white bg-teal-700 rounded-xl">
-                  Join PawCo
-                </button>
-              </Link>
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  openAuthModal('LOGIN');
+                }}
+                className="w-full py-2.5 text-xs font-bold text-slate-700 bg-stone-100 hover:bg-stone-200 rounded-xl transition-colors"
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  openAuthModal('REGISTER');
+                }}
+                className="w-full py-2.5 text-xs font-bold text-white bg-teal-800 hover:bg-teal-900 rounded-xl transition-colors"
+              >
+                Join PawCo
+              </button>
             </div>
           )}
         </div>

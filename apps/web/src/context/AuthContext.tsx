@@ -1,9 +1,11 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useRef } from 'react';
 import { User, Role } from '@petco/shared';
 import { api } from '@/lib/api';
 import { useRouter, usePathname } from 'next/navigation';
+
+export type AuthModalMode = 'LOGIN' | 'REGISTER' | 'FORGOT_PASSWORD';
 
 interface AuthContextType {
   user: User | null;
@@ -12,6 +14,13 @@ interface AuthContextType {
   register: (data: any) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   updateUser: (updatedUser: Partial<User>) => void;
+  // In-Page Auth Modal Controls
+  isAuthModalOpen: boolean;
+  authModalMode: AuthModalMode;
+  openAuthModal: (mode?: AuthModalMode, onSuccess?: () => void) => void;
+  closeAuthModal: () => void;
+  setAuthModalMode: (mode: AuthModalMode) => void;
+  handleAuthSuccess: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,6 +28,10 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<AuthModalMode>('LOGIN');
+  const authCallbackRef = useRef<(() => void) | null>(null);
+
   const router = useRouter();
   const pathname = usePathname();
 
@@ -45,6 +58,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     initAuth();
   }, []);
 
+  const openAuthModal = (mode: AuthModalMode = 'LOGIN', onSuccess?: () => void) => {
+    setAuthModalMode(mode);
+    if (onSuccess) {
+      authCallbackRef.current = onSuccess;
+    } else {
+      authCallbackRef.current = null;
+    }
+    setIsAuthModalOpen(true);
+  };
+
+  const closeAuthModal = () => {
+    setIsAuthModalOpen(false);
+    authCallbackRef.current = null;
+  };
+
+  const handleAuthSuccess = () => {
+    setIsAuthModalOpen(false);
+    if (authCallbackRef.current) {
+      const callback = authCallbackRef.current;
+      authCallbackRef.current = null;
+      callback();
+    }
+  };
+
   const login = async (credentials: { email: string; password: string }) => {
     const res = await api.post<{ user: User; tokens: { accessToken: string; refreshToken: string } }>(
       '/auth/login',
@@ -55,6 +92,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       api.setTokens(res.data.tokens.accessToken, res.data.tokens.refreshToken);
       localStorage.setItem('petco_user', JSON.stringify(res.data.user));
       setUser(res.data.user);
+      handleAuthSuccess();
       return { success: true };
     }
 
@@ -71,6 +109,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       api.setTokens(res.data.tokens.accessToken, res.data.tokens.refreshToken);
       localStorage.setItem('petco_user', JSON.stringify(res.data.user));
       setUser(res.data.user);
+      handleAuthSuccess();
       return { success: true };
     }
 
@@ -84,7 +123,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     api.clearTokens();
     setUser(null);
-    router.push('/login');
+    router.push('/');
   };
 
   const updateUser = (updatedUser: Partial<User>) => {
@@ -96,7 +135,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout, updateUser }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isLoading,
+        login,
+        register,
+        logout,
+        updateUser,
+        isAuthModalOpen,
+        authModalMode,
+        openAuthModal,
+        closeAuthModal,
+        setAuthModalMode,
+        handleAuthSuccess,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
