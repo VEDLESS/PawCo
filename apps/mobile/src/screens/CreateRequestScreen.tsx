@@ -16,30 +16,37 @@ export const CreateRequestScreen = ({ navigation }: any) => {
   const [pets, setPets] = useState<Pet[]>([]);
   const [selectedPetId, setSelectedPetId] = useState('');
   const [serviceType, setServiceType] = useState<ServiceType>(ServiceType.DOG_WALKING);
-  const [title, setTitle] = useState('Dog Walking & Fetch');
+  const [title, setTitle] = useState('Dog Walking & Exercise');
   const [description, setDescription] = useState('');
   const [scheduledDate, setScheduledDate] = useState(
     new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]
   );
   const [startTime, setStartTime] = useState('14:00');
-  const [location, setLocation] = useState('Dolores Park, San Francisco');
+  const [location, setLocation] = useState('Mission District, San Francisco');
   const [budget, setBudget] = useState('35');
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetchingPets, setIsFetchingPets] = useState(true);
 
   useEffect(() => {
     const loadPets = async () => {
+      setIsFetchingPets(true);
       const res = await mobileApi.get<Pet[]>('/pets');
       if (res.success && res.data && res.data.length > 0) {
         setPets(res.data);
         setSelectedPetId(res.data[0].id);
       }
+      setIsFetchingPets(false);
     };
     loadPets();
   }, []);
 
   const handleSubmit = async () => {
     if (!selectedPetId) {
-      Alert.alert('Error', 'Please select a pet');
+      Alert.alert('Companion Required', 'Please select a registered pet before creating a request.');
+      return;
+    }
+    if (!budget || isNaN(parseFloat(budget)) || parseFloat(budget) <= 0) {
+      Alert.alert('Invalid Budget', 'Please enter a valid budget amount.');
       return;
     }
 
@@ -47,9 +54,9 @@ export const CreateRequestScreen = ({ navigation }: any) => {
     const res = await mobileApi.post('/requests', {
       petId: selectedPetId,
       serviceType,
-      title,
-      description: description || 'Pet care request via mobile app.',
-      location,
+      title: title.trim(),
+      description: description.trim() || 'Neighborhood pet care request via PawCo.',
+      location: location.trim(),
       latitude: 37.7596,
       longitude: -122.4269,
       scheduledDate,
@@ -59,11 +66,11 @@ export const CreateRequestScreen = ({ navigation }: any) => {
     setIsLoading(false);
 
     if (res.success) {
-      Alert.alert('Success', 'Service request posted to nearby helpers!', [
-        { text: 'OK', onPress: () => navigation.goBack() },
+      Alert.alert('Care Request Posted', 'Your request has been broadcasted to verified local helpers!', [
+        { text: 'View Requests', onPress: () => navigation.goBack() },
       ]);
     } else {
-      Alert.alert('Error', res.error || 'Failed to post request');
+      Alert.alert('Submission Error', res.error || 'Failed to post request. Please try again.');
     }
   };
 
@@ -72,20 +79,31 @@ export const CreateRequestScreen = ({ navigation }: any) => {
       <Text style={styles.header}>Request Pet Care</Text>
 
       {/* Select Pet */}
-      <Text style={styles.label}>Select Pet</Text>
-      <View style={styles.petSelector}>
-        {pets.map((p) => (
-          <TouchableOpacity
-            key={p.id}
-            style={[styles.petOption, selectedPetId === p.id && styles.petOptionSelected]}
-            onPress={() => setSelectedPetId(p.id)}
-          >
-            <Text style={[styles.petText, selectedPetId === p.id && styles.petTextSelected]}>
-              🐾 {p.name} ({p.species})
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      <Text style={styles.label}>Select Companion</Text>
+      {isFetchingPets ? (
+        <ActivityIndicator color="#0f766e" style={{ marginVertical: 12 }} />
+      ) : pets.length === 0 ? (
+        <View style={styles.emptyNotice}>
+          <Text style={styles.emptyNoticeText}>
+            No pets registered yet. Please add a pet profile first before submitting a request.
+          </Text>
+        </View>
+      ) : (
+        <View style={styles.petSelector}>
+          {pets.map((p) => (
+            <TouchableOpacity
+              key={p.id}
+              style={[styles.petOption, selectedPetId === p.id && styles.petOptionSelected]}
+              onPress={() => setSelectedPetId(p.id)}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.petText, selectedPetId === p.id && styles.petTextSelected]}>
+                🐾 {p.name} ({p.species})
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
 
       {/* Service Selection */}
       <Text style={styles.label}>Service Type</Text>
@@ -102,6 +120,7 @@ export const CreateRequestScreen = ({ navigation }: any) => {
             key={s.type}
             style={[styles.serviceBtn, serviceType === s.type && styles.serviceBtnActive]}
             onPress={() => setServiceType(s.type)}
+            activeOpacity={0.8}
           >
             <Text style={[styles.serviceText, serviceType === s.type && styles.serviceTextActive]}>
               {s.label}
@@ -126,21 +145,22 @@ export const CreateRequestScreen = ({ navigation }: any) => {
       <Text style={styles.label}>Budget ($ USD)</Text>
       <TextInput style={styles.input} keyboardType="numeric" value={budget} onChangeText={setBudget} />
 
-      <Text style={styles.label}>Instructions</Text>
+      <Text style={styles.label}>Instructions & Care Notes</Text>
       <TextInput
         style={[styles.input, styles.textArea]}
         multiline
         numberOfLines={3}
-        placeholder="Specific instructions for the helper..."
+        placeholder="Specific instructions, allergies, feeding routine, etc."
         placeholderTextColor="#94a3b8"
         value={description}
         onChangeText={setDescription}
       />
 
       <TouchableOpacity
-        style={styles.submitBtn}
+        style={[styles.submitBtn, (isLoading || pets.length === 0) && styles.submitBtnDisabled]}
         onPress={handleSubmit}
-        disabled={isLoading}
+        disabled={isLoading || pets.length === 0}
+        activeOpacity={0.85}
       >
         {isLoading ? (
           <ActivityIndicator color="#ffffff" />
@@ -161,10 +181,11 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   header: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '800',
     color: '#0f172a',
     marginBottom: 16,
+    letterSpacing: -0.5,
   },
   label: {
     fontSize: 12,
@@ -172,6 +193,18 @@ const styles = StyleSheet.create({
     color: '#334155',
     marginBottom: 6,
     marginTop: 14,
+  },
+  emptyNotice: {
+    padding: 14,
+    backgroundColor: '#fef3c7',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#fde68a',
+  },
+  emptyNoticeText: {
+    fontSize: 12,
+    color: '#92400e',
+    lineHeight: 18,
   },
   petSelector: {
     flexDirection: 'row',
@@ -182,12 +215,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderWidth: 1,
     borderColor: '#cbd5e1',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingVertical: 9,
+    paddingHorizontal: 14,
     borderRadius: 12,
   },
   petOptionSelected: {
-    borderColor: '#0d9488',
+    borderColor: '#0f766e',
     backgroundColor: '#ccfbf1',
   },
   petText: {
@@ -195,7 +228,7 @@ const styles = StyleSheet.create({
     color: '#334155',
   },
   petTextSelected: {
-    color: '#0d9488',
+    color: '#0f766e',
     fontWeight: '700',
   },
   serviceGrid: {
@@ -213,8 +246,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   serviceBtnActive: {
-    backgroundColor: '#0d9488',
-    borderColor: '#0d9488',
+    backgroundColor: '#0f766e',
+    borderColor: '#0f766e',
   },
   serviceText: {
     fontSize: 12,
@@ -239,12 +272,15 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   submitBtn: {
-    backgroundColor: '#0d9488',
+    backgroundColor: '#0f766e',
     padding: 16,
     borderRadius: 14,
     alignItems: 'center',
     marginTop: 24,
     marginBottom: 32,
+  },
+  submitBtnDisabled: {
+    opacity: 0.6,
   },
   submitText: {
     color: '#ffffff',

@@ -110,9 +110,9 @@ export const Sidebar = () => {
         </nav>
       </div>
 
-      {/* PetCo Trust Banner */}
+      {/* PawCo Trust Banner */}
       <div className="p-3.5 bg-gradient-to-tr from-teal-50/70 to-emerald-50/70 rounded-2xl border border-teal-100/80">
-        <p className="text-xs font-extrabold text-teal-950">PetCo Care Guarantee</p>
+        <p className="text-xs font-extrabold text-teal-950">PawCo Care Guarantee</p>
         <p className="text-[11px] text-teal-800 mt-1 leading-relaxed">
           Every booking includes community verification, direct messaging, and 24/7 emergency dispatch support.
         </p>

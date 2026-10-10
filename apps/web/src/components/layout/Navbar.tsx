@@ -194,7 +194,7 @@ export const Navbar = () => {
               </Link>
               <Link href="/register">
                 <button className="px-4 py-2 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold rounded-xl shadow-sm shadow-teal-900/15 transition-all active:scale-[0.98]">
-                  Join PetCo
+                  Join PawCo
                 </button>
               </Link>
             </div>
@@ -283,7 +283,7 @@ export const Navbar = () => {
               </Link>
               <Link href="/register" onClick={() => setMobileMenuOpen(false)}>
                 <button className="w-full py-2 text-xs font-bold text-white bg-teal-700 rounded-xl">
-                  Join PetCo
+                  Join PawCo
                 </button>
               </Link>
             </div>

@@ -416,7 +416,7 @@ function CreateRequestContent() {
             <span>Emergency Advisory & Disclaimer</span>
           </div>
           <p className="text-[11px] text-amber-800 leading-relaxed">
-            PetCo connects pet owners with local community helpers and is not a substitute for licensed emergency veterinary hospital care. In life-threatening emergencies, please transport your pet directly to a 24/7 veterinary ER or call your local animal hospital immediately.
+            PawCo connects pet owners with local community helpers and is not a substitute for licensed emergency veterinary hospital care. In life-threatening emergencies, please transport your pet directly to a 24/7 veterinary ER or call your local animal hospital immediately.
           </p>
         </div>
       )}

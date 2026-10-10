@@ -15,17 +15,20 @@ import { useAuth } from '../context/AuthContext';
 export const LoginScreen = ({ navigation }: any) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { login, isLoading } = useAuth();
 
-  const handleLogin = async (loginEmail?: string, loginPass?: string) => {
+  const handleLogin = async () => {
+    if (!email || !password) {
+      setError('Please enter your email and password');
+      return;
+    }
     setError(null);
-    const targetEmail = loginEmail || email;
-    const targetPassword = loginPass || password;
 
-    const res = await login({ email: targetEmail, password: targetPassword });
+    const res = await login({ email: email.trim(), password });
     if (!res.success) {
-      setError(res.error || 'Invalid credentials');
+      setError(res.error || 'Invalid email or password');
     }
   };
 
@@ -34,13 +37,13 @@ export const LoginScreen = ({ navigation }: any) => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
           <View style={styles.logoBadge}>
             <Text style={styles.logoIcon}>🐾</Text>
           </View>
-          <Text style={styles.title}>PetCo Mobile</Text>
-          <Text style={styles.subtitle}>Hyperlocal neighborhood pet care</Text>
+          <Text style={styles.title}>PawCo</Text>
+          <Text style={styles.subtitle}>Trusted neighborhood pet care network</Text>
         </View>
 
         {error && (
@@ -53,28 +56,49 @@ export const LoginScreen = ({ navigation }: any) => {
           <Text style={styles.label}>Email Address</Text>
           <TextInput
             style={styles.input}
-            placeholder="you@example.com"
+            placeholder="name@example.com"
             placeholderTextColor="#94a3b8"
             autoCapitalize="none"
+            autoComplete="email"
             keyboardType="email-address"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(text) => {
+              setEmail(text);
+              if (error) setError(null);
+            }}
           />
 
-          <Text style={styles.label}>Password</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="••••••••"
-            placeholderTextColor="#94a3b8"
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
+          <View style={styles.passwordHeader}>
+            <Text style={styles.label}>Password</Text>
+          </View>
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.passwordInput}
+              placeholder="••••••••"
+              placeholderTextColor="#94a3b8"
+              secureTextEntry={!showPassword}
+              autoCapitalize="none"
+              autoComplete="current-password"
+              value={password}
+              onChangeText={(text) => {
+                setPassword(text);
+                if (error) setError(null);
+              }}
+            />
+            <TouchableOpacity
+              onPress={() => setShowPassword(!showPassword)}
+              style={styles.eyeBtn}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Text style={styles.eyeBtnText}>{showPassword ? 'Hide' : 'Show'}</Text>
+            </TouchableOpacity>
+          </View>
 
           <TouchableOpacity
-            style={[styles.button, styles.primaryButton]}
-            onPress={() => handleLogin()}
+            style={[styles.button, styles.primaryButton, isLoading && styles.buttonDisabled]}
+            onPress={handleLogin}
             disabled={isLoading}
+            activeOpacity={0.8}
           >
             {isLoading ? (
               <ActivityIndicator color="#ffffff" />
@@ -84,30 +108,12 @@ export const LoginScreen = ({ navigation }: any) => {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.demoSection}>
-          <Text style={styles.demoTitle}>Quick Demo Sign-In</Text>
-          <View style={styles.demoRow}>
-            <TouchableOpacity
-              style={styles.demoBtn}
-              onPress={() => handleLogin('sarah@petco.com', 'Password123!')}
-            >
-              <Text style={styles.demoBtnText}>🐕 Owner (Sarah)</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.demoBtn}
-              onPress={() => handleLogin('alex@petco.com', 'Password123!')}
-            >
-              <Text style={styles.demoBtnText}>🐾 Helper (Alex)</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
         <TouchableOpacity
           style={styles.footerLink}
           onPress={() => navigation.navigate('Register')}
         >
           <Text style={styles.footerText}>
-            New to PetCo? <Text style={styles.linkText}>Create an Account</Text>
+            New to PawCo? <Text style={styles.linkText}>Create an Account</Text>
           </Text>
         </TouchableOpacity>
       </ScrollView>
@@ -130,53 +136,56 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
   logoBadge: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
-    backgroundColor: '#0d9488',
+    width: 68,
+    height: 68,
+    borderRadius: 22,
+    backgroundColor: '#0f766e',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
-    shadowColor: '#0d9488',
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    marginBottom: 14,
+    shadowColor: '#0f766e',
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
     elevation: 4,
   },
   logoIcon: {
     fontSize: 32,
   },
   title: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: '800',
     color: '#0f172a',
+    letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#64748b',
     marginTop: 4,
+    textAlign: 'center',
   },
   errorBox: {
-    backgroundColor: '#fee2e2',
-    padding: 12,
-    borderRadius: 12,
+    backgroundColor: '#fef2f2',
+    padding: 14,
+    borderRadius: 14,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#fca5a5',
+    borderColor: '#fecaca',
   },
   errorText: {
     color: '#b91c1c',
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
+    textAlign: 'center',
   },
   form: {
     backgroundColor: '#ffffff',
-    padding: 20,
-    borderRadius: 20,
+    padding: 22,
+    borderRadius: 24,
     borderWidth: 1,
     borderColor: '#e2e8f0',
     shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
     elevation: 2,
   },
   label: {
@@ -184,62 +193,65 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#334155',
     marginBottom: 6,
-    marginTop: 12,
+    marginTop: 10,
+  },
+  passwordHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   input: {
     backgroundColor: '#f8fafc',
     borderWidth: 1,
     borderColor: '#cbd5e1',
-    borderRadius: 12,
-    padding: 12,
-    fontSize: 14,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
     color: '#0f172a',
   },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    borderRadius: 14,
+  },
+  passwordInput: {
+    flex: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: '#0f172a',
+  },
+  eyeBtn: {
+    paddingHorizontal: 14,
+  },
+  eyeBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#0f766e',
+  },
   button: {
-    padding: 14,
+    padding: 15,
     borderRadius: 14,
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 22,
   },
   primaryButton: {
-    backgroundColor: '#0d9488',
+    backgroundColor: '#0f766e',
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   buttonText: {
     color: '#ffffff',
     fontSize: 15,
     fontWeight: '700',
   },
-  demoSection: {
-    marginTop: 24,
-    alignItems: 'center',
-  },
-  demoTitle: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#94a3b8',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 10,
-  },
-  demoRow: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  demoBtn: {
-    backgroundColor: '#ffffff',
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-  },
-  demoBtnText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#334155',
-  },
   footerLink: {
-    marginTop: 24,
+    marginTop: 26,
     alignItems: 'center',
   },
   footerText: {
@@ -247,7 +259,7 @@ const styles = StyleSheet.create({
     color: '#64748b',
   },
   linkText: {
-    color: '#0d9488',
+    color: '#0f766e',
     fontWeight: '700',
   },
 });

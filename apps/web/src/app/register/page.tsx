@@ -7,7 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Role } from '@petco/shared';
-import { PawPrint, Heart, Briefcase } from 'lucide-react';
+import { PawPrint, Heart, Briefcase, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { clsx } from 'clsx';
 
 function RegisterForm() {
@@ -18,6 +18,7 @@ function RegisterForm() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [phone, setPhone] = useState('');
   const [location, setLocation] = useState('San Francisco, CA');
   const [isLoading, setIsLoading] = useState(false);
@@ -28,16 +29,25 @@ function RegisterForm() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!name.trim() || !email.trim() || !password) {
+      setError('Please fill in all required fields.');
+      return;
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
     const res = await register({
-      name,
-      email,
+      name: name.trim(),
+      email: email.trim(),
       password,
-      phone: phone || undefined,
+      phone: phone.trim() || undefined,
       role,
-      location,
+      location: location.trim(),
       latitude: 37.7749,
       longitude: -122.4194,
     });
@@ -47,7 +57,7 @@ function RegisterForm() {
     if (res.success) {
       router.push('/dashboard');
     } else {
-      setError(res.error || 'Registration failed');
+      setError(res.error || 'Registration failed. Please try again.');
     }
   };
 
@@ -55,12 +65,12 @@ function RegisterForm() {
     <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200/80 p-8 space-y-6">
       <div className="text-center space-y-2">
         <Link href="/" className="inline-flex items-center gap-2 group">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-teal-600 to-emerald-400 flex items-center justify-center text-white shadow-lg shadow-teal-500/20 group-hover:scale-105 transition-transform">
+          <div className="w-12 h-12 rounded-2xl bg-teal-800 flex items-center justify-center text-white shadow-lg shadow-teal-900/20 group-hover:scale-105 transition-transform">
             <PawPrint className="w-6 h-6 fill-white" />
           </div>
         </Link>
-        <h2 className="text-2xl font-black text-slate-900 tracking-tight">Join the PetCo Network</h2>
-        <p className="text-xs text-slate-500">Sign up in seconds to start caring or getting neighborhood care</p>
+        <h2 className="text-2xl font-black text-slate-900 tracking-tight">Create your PawCo Account</h2>
+        <p className="text-xs text-slate-500">Sign up in seconds to start caring or booking verified local pet care</p>
       </div>
 
       <div className="grid grid-cols-2 gap-3 p-1.5 bg-slate-100 rounded-2xl border border-slate-200">
@@ -74,7 +84,7 @@ function RegisterForm() {
               : 'text-slate-600 hover:text-slate-900'
           )}
         >
-          <Heart className={clsx('w-4 h-4', role === Role.OWNER ? 'text-teal-600 fill-teal-600' : 'text-slate-400')} />
+          <Heart className={clsx('w-4 h-4', role === Role.OWNER ? 'text-teal-700 fill-teal-700' : 'text-slate-400')} />
           I am a Pet Owner
         </button>
         <button
@@ -87,13 +97,13 @@ function RegisterForm() {
               : 'text-slate-600 hover:text-slate-900'
           )}
         >
-          <Briefcase className={clsx('w-4 h-4', role === Role.HELPER ? 'text-teal-600' : 'text-slate-400')} />
+          <Briefcase className={clsx('w-4 h-4', role === Role.HELPER ? 'text-teal-700' : 'text-slate-400')} />
           I am a Pet Helper
         </button>
       </div>
 
       {error && (
-        <div className="p-3 bg-rose-50 text-rose-700 text-xs font-medium rounded-xl border border-rose-200">
+        <div className="p-3 bg-rose-50 text-rose-700 text-xs font-semibold rounded-xl border border-rose-200">
           {error}
         </div>
       )}
@@ -102,32 +112,55 @@ function RegisterForm() {
         <Input
           label="Full Name *"
           required
+          autoComplete="name"
           placeholder="Sarah Jenkins"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => {
+            setName(e.target.value);
+            if (error) setError(null);
+          }}
         />
 
         <Input
           label="Email Address *"
           type="email"
           required
+          autoComplete="email"
           placeholder="sarah@example.com"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (error) setError(null);
+          }}
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
             label="Password *"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             required
-            placeholder="Minimum 6 characters"
+            autoComplete="new-password"
+            placeholder="Min 6 characters"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (error) setError(null);
+            }}
+            rightElement={
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="text-slate-400 hover:text-slate-600 transition-colors focus:outline-none"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            }
           />
           <Input
-            label="Phone Number"
+            label="Phone Number (Optional)"
             type="tel"
+            autoComplete="tel"
             placeholder="+1 (555) 000-0000"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
@@ -143,33 +176,35 @@ function RegisterForm() {
         />
 
         {role === Role.HELPER && (
-          <div className="p-3 bg-teal-50/70 border border-teal-100 rounded-2xl text-xs text-teal-800 space-y-1">
-            <p className="font-bold">✨ Helper Profile Setup</p>
+          <div className="p-3 bg-teal-50/70 border border-teal-100 rounded-2xl text-xs text-teal-900 space-y-1">
+            <p className="font-bold flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-teal-700" /> Helper Verification & Profile
+            </p>
             <p className="text-[11px] text-teal-700">
-              You will be able to customize your hourly rates, services offered, and coverage radius from your dashboard.
+              Set your own hourly rates, choose services offered, and configure service radius directly from your helper workspace.
             </p>
           </div>
         )}
 
-        <Button type="submit" size="lg" className="w-full" isLoading={isLoading}>
+        <Button type="submit" size="lg" className="w-full bg-teal-800 hover:bg-teal-900 text-white font-bold" isLoading={isLoading}>
           Create {role === Role.OWNER ? 'Pet Owner' : 'Pet Helper'} Account
         </Button>
       </form>
 
-      <p className="text-center text-xs text-slate-500 pt-2">
+      <div className="pt-2 text-center text-xs text-slate-500">
         Already have an account?{' '}
-        <Link href="/login" className="font-bold text-teal-600 hover:underline">
+        <Link href="/login" className="font-bold text-teal-800 hover:underline">
           Sign In
         </Link>
-      </p>
+      </div>
     </div>
   );
 }
 
 export default function RegisterPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50/50 via-slate-50 to-amber-50/30 flex items-center justify-center p-4">
-      <Suspense fallback={<div className="w-8 h-8 border-4 border-teal-600 border-t-transparent rounded-full animate-spin" />}>
+    <div className="min-h-screen bg-stone-50 flex items-center justify-center p-4">
+      <Suspense fallback={<div className="w-8 h-8 border-4 border-teal-800 border-t-transparent rounded-full animate-spin" />}>
         <RegisterForm />
       </Suspense>
     </div>

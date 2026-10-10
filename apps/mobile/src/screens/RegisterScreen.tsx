@@ -7,6 +7,8 @@ import {
   StyleSheet,
   ActivityIndicator,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { Role } from '@petco/shared';
@@ -16,6 +18,7 @@ export const RegisterScreen = ({ navigation }: any) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [phone, setPhone] = useState('');
   const [location, setLocation] = useState('San Francisco, CA');
   const [error, setError] = useState<string | null>(null);
@@ -23,18 +26,22 @@ export const RegisterScreen = ({ navigation }: any) => {
 
   const handleRegister = async () => {
     setError(null);
-    if (!name || !email || !password) {
+    if (!name.trim() || !email.trim() || !password) {
       setError('Please fill in all required fields');
+      return;
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
       return;
     }
 
     const res = await register({
-      name,
-      email,
+      name: name.trim(),
+      email: email.trim(),
       password,
-      phone: phone || undefined,
+      phone: phone.trim() || undefined,
       role,
-      location,
+      location: location.trim(),
       latitude: 37.7749,
       longitude: -122.4194,
     });
@@ -45,110 +52,145 @@ export const RegisterScreen = ({ navigation }: any) => {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
-      <Text style={styles.title}>Create PetCo Account</Text>
-      <Text style={styles.subtitle}>Connect with neighborhood pet care</Text>
-
-      {/* Role Toggle */}
-      <View style={styles.roleToggle}>
-        <TouchableOpacity
-          style={[styles.roleBtn, role === Role.OWNER && styles.roleBtnActive]}
-          onPress={() => setRole(Role.OWNER)}
-        >
-          <Text style={[styles.roleText, role === Role.OWNER && styles.roleTextActive]}>
-            🐕 Pet Owner
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.roleBtn, role === Role.HELPER && styles.roleBtnActive]}
-          onPress={() => setRole(Role.HELPER)}
-        >
-          <Text style={[styles.roleText, role === Role.HELPER && styles.roleTextActive]}>
-            🐾 Pet Helper
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {error && (
-        <View style={styles.errorBox}>
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
-      )}
-
-      <View style={styles.form}>
-        <Text style={styles.label}>Full Name *</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Sarah Jenkins"
-          placeholderTextColor="#94a3b8"
-          value={name}
-          onChangeText={setName}
-        />
-
-        <Text style={styles.label}>Email Address *</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="sarah@example.com"
-          placeholderTextColor="#94a3b8"
-          autoCapitalize="none"
-          keyboardType="email-address"
-          value={email}
-          onChangeText={setEmail}
-        />
-
-        <Text style={styles.label}>Password (Min 6 chars) *</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="••••••••"
-          placeholderTextColor="#94a3b8"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
-
-        <Text style={styles.label}>Phone Number</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="+1 (555) 000-0000"
-          placeholderTextColor="#94a3b8"
-          keyboardType="phone-pad"
-          value={phone}
-          onChangeText={setPhone}
-        />
-
-        <Text style={styles.label}>Location / City *</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Mission District, San Francisco"
-          placeholderTextColor="#94a3b8"
-          value={location}
-          onChangeText={setLocation}
-        />
-
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleRegister}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <ActivityIndicator color="#ffffff" />
-          ) : (
-            <Text style={styles.buttonText}>
-              Register as {role === Role.OWNER ? 'Pet Owner' : 'Pet Helper'}
-            </Text>
-          )}
-        </TouchableOpacity>
-      </View>
-
-      <TouchableOpacity
-        style={styles.footerLink}
-        onPress={() => navigation.navigate('Login')}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.footerText}>
-          Already have an account? <Text style={styles.linkText}>Sign In</Text>
-        </Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <Text style={styles.title}>Join PawCo</Text>
+        <Text style={styles.subtitle}>Connect with trusted neighborhood pet care</Text>
+
+        {/* Role Toggle */}
+        <View style={styles.roleToggle}>
+          <TouchableOpacity
+            style={[styles.roleBtn, role === Role.OWNER && styles.roleBtnActive]}
+            onPress={() => setRole(Role.OWNER)}
+            activeOpacity={0.8}
+          >
+            <Text style={[styles.roleText, role === Role.OWNER && styles.roleTextActive]}>
+              🐕 Pet Owner
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.roleBtn, role === Role.HELPER && styles.roleBtnActive]}
+            onPress={() => setRole(Role.HELPER)}
+            activeOpacity={0.8}
+          >
+            <Text style={[styles.roleText, role === Role.HELPER && styles.roleTextActive]}>
+              🐾 Pet Helper
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {error && (
+          <View style={styles.errorBox}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        )}
+
+        <View style={styles.form}>
+          <Text style={styles.label}>Full Name *</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Sarah Jenkins"
+            placeholderTextColor="#94a3b8"
+            autoCapitalize="words"
+            autoComplete="name"
+            value={name}
+            onChangeText={(t) => {
+              setName(t);
+              if (error) setError(null);
+            }}
+          />
+
+          <Text style={styles.label}>Email Address *</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="sarah@example.com"
+            placeholderTextColor="#94a3b8"
+            autoCapitalize="none"
+            autoComplete="email"
+            keyboardType="email-address"
+            value={email}
+            onChangeText={(t) => {
+              setEmail(t);
+              if (error) setError(null);
+            }}
+          />
+
+          <Text style={styles.label}>Password (Min 6 chars) *</Text>
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.passwordInput}
+              placeholder="••••••••"
+              placeholderTextColor="#94a3b8"
+              secureTextEntry={!showPassword}
+              autoCapitalize="none"
+              autoComplete="new-password"
+              value={password}
+              onChangeText={(t) => {
+                setPassword(t);
+                if (error) setError(null);
+              }}
+            />
+            <TouchableOpacity
+              onPress={() => setShowPassword(!showPassword)}
+              style={styles.eyeBtn}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Text style={styles.eyeBtnText}>{showPassword ? 'Hide' : 'Show'}</Text>
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.label}>Phone Number (Optional)</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="+1 (555) 000-0000"
+            placeholderTextColor="#94a3b8"
+            keyboardType="phone-pad"
+            autoComplete="tel"
+            value={phone}
+            onChangeText={setPhone}
+          />
+
+          <Text style={styles.label}>Location / City *</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Mission District, San Francisco"
+            placeholderTextColor="#94a3b8"
+            value={location}
+            onChangeText={setLocation}
+          />
+
+          <TouchableOpacity
+            style={[styles.button, isLoading && styles.buttonDisabled]}
+            onPress={handleRegister}
+            disabled={isLoading}
+            activeOpacity={0.8}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#ffffff" />
+            ) : (
+              <Text style={styles.buttonText}>
+                Register as {role === Role.OWNER ? 'Pet Owner' : 'Pet Helper'}
+              </Text>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity
+          style={styles.footerLink}
+          onPress={() => navigation.navigate('Login')}
+        >
+          <Text style={styles.footerText}>
+            Already have an account? <Text style={styles.linkText}>Sign In</Text>
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -162,13 +204,14 @@ const styles = StyleSheet.create({
     paddingTop: 48,
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: '800',
     color: '#0f172a',
     textAlign: 'center',
+    letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#64748b',
     textAlign: 'center',
     marginTop: 4,
@@ -183,15 +226,15 @@ const styles = StyleSheet.create({
   },
   roleBtn: {
     flex: 1,
-    paddingVertical: 10,
+    paddingVertical: 11,
     alignItems: 'center',
     borderRadius: 10,
   },
   roleBtnActive: {
     backgroundColor: '#ffffff',
     shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    shadowOpacity: 0.06,
+    shadowRadius: 5,
     elevation: 2,
   },
   roleText: {
@@ -200,27 +243,32 @@ const styles = StyleSheet.create({
     color: '#64748b',
   },
   roleTextActive: {
-    color: '#0d9488',
+    color: '#0f766e',
   },
   errorBox: {
-    backgroundColor: '#fee2e2',
+    backgroundColor: '#fef2f2',
     padding: 12,
-    borderRadius: 12,
+    borderRadius: 14,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#fca5a5',
+    borderColor: '#fecaca',
   },
   errorText: {
     color: '#b91c1c',
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
+    textAlign: 'center',
   },
   form: {
     backgroundColor: '#ffffff',
     padding: 20,
-    borderRadius: 20,
+    borderRadius: 22,
     borderWidth: 1,
     borderColor: '#e2e8f0',
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
   },
   label: {
     fontSize: 12,
@@ -234,16 +282,43 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#cbd5e1',
     borderRadius: 12,
-    padding: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     fontSize: 14,
     color: '#0f172a',
   },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    borderRadius: 12,
+  },
+  passwordInput: {
+    flex: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 14,
+    color: '#0f172a',
+  },
+  eyeBtn: {
+    paddingHorizontal: 14,
+  },
+  eyeBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#0f766e',
+  },
   button: {
-    backgroundColor: '#0d9488',
-    padding: 14,
+    backgroundColor: '#0f766e',
+    padding: 15,
     borderRadius: 14,
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 22,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   buttonText: {
     color: '#ffffff',
@@ -260,7 +335,7 @@ const styles = StyleSheet.create({
     color: '#64748b',
   },
   linkText: {
-    color: '#0d9488',
+    color: '#0f766e',
     fontWeight: '700',
   },
 });

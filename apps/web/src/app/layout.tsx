@@ -4,9 +4,9 @@ import { AuthProvider } from '@/context/AuthContext';
 import { SocketProvider } from '@/context/SocketContext';
 
 export const metadata: Metadata = {
-  title: 'PetCo — Hyperlocal Pet Care Marketplace',
+  title: 'PawCo — Hyperlocal Pet Care Marketplace',
   description: 'Connect with verified, trusted neighborhood pet-care helpers for dog walking, pet sitting, medication, and more.',
-  keywords: 'pet care, dog walking, cat sitting, pet boarding, hyperlocal pet marketplace, petco',
+  keywords: 'pet care, dog walking, cat sitting, pet boarding, hyperlocal pet marketplace, pawco',
 };
 
 export default function RootLayout({

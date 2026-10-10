@@ -41,7 +41,11 @@ export const HelperHomeScreen = ({ navigation }: any) => {
 
   const completed = bookings.filter((b) => b.status === 'COMPLETED');
   const active = bookings.filter((b) => b.status === 'CONFIRMED' || b.status === 'IN_PROGRESS');
-  const earnings = completed.reduce((sum, b) => sum + b.agreedPrice, 0);
+  const earnings = completed.reduce((sum, b) => sum + (b.agreedPrice || 0), 0);
+
+  const ratingDisplay = user?.helperProfile?.totalReviews && user.helperProfile.totalReviews > 0
+    ? `${user.helperProfile.rating.toFixed(1)} ★`
+    : 'New';
 
   return (
     <ScrollView
@@ -53,10 +57,10 @@ export const HelperHomeScreen = ({ navigation }: any) => {
         <View style={styles.headerTop}>
           <View>
             <Text style={styles.badgeText}>🐾 Care Provider</Text>
-            <Text style={styles.welcomeText}>Hi, {user?.name}!</Text>
-            <Text style={styles.subWelcomeText}>{user?.location || 'Local Helper'}</Text>
+            <Text style={styles.welcomeText}>Hi, {user?.name || 'Helper'}!</Text>
+            <Text style={styles.subWelcomeText}>{user?.location || 'Neighborhood Helper'}</Text>
           </View>
-          <TouchableOpacity onPress={logout} style={styles.logoutBtn}>
+          <TouchableOpacity onPress={logout} style={styles.logoutBtn} activeOpacity={0.8}>
             <Text style={styles.logoutText}>Sign Out</Text>
           </TouchableOpacity>
         </View>
@@ -64,13 +68,13 @@ export const HelperHomeScreen = ({ navigation }: any) => {
         {/* Availability Switch */}
         <View style={styles.availabilityRow}>
           <Text style={styles.availabilityLabel}>
-            {isAvailable ? '🟢 Accepting Jobs' : '⏸️ Currently Off'}
+            {isAvailable ? '🟢 Accepting Jobs' : '⏸️ Currently Off-Duty'}
           </Text>
           <Switch
             value={isAvailable}
             onValueChange={handleToggle}
             trackColor={{ false: '#cbd5e1', true: '#5eead4' }}
-            thumbColor={isAvailable ? '#0d9488' : '#94a3b8'}
+            thumbColor={isAvailable ? '#0f766e' : '#94a3b8'}
           />
         </View>
       </View>
@@ -87,7 +91,7 @@ export const HelperHomeScreen = ({ navigation }: any) => {
         </View>
         <View style={styles.metricBox}>
           <Text style={styles.metricLabel}>Rating</Text>
-          <Text style={styles.metricValue}>5.0 ★</Text>
+          <Text style={styles.metricValue}>{ratingDisplay}</Text>
         </View>
       </View>
 
@@ -96,6 +100,7 @@ export const HelperHomeScreen = ({ navigation }: any) => {
         <TouchableOpacity
           style={styles.jobsBanner}
           onPress={() => navigation.navigate('NearbyJobs')}
+          activeOpacity={0.85}
         >
           <View>
             <Text style={styles.jobsBannerTitle}>Nearby Job Requests ({nearbyCount})</Text>
@@ -110,7 +115,9 @@ export const HelperHomeScreen = ({ navigation }: any) => {
         <Text style={styles.sectionTitle}>Active Bookings ({active.length})</Text>
         {active.length === 0 ? (
           <View style={styles.emptyCard}>
-            <Text style={styles.emptyText}>No active bookings right now</Text>
+            <Text style={styles.emptyEmoji}>🐾</Text>
+            <Text style={styles.emptyTitle}>No active bookings right now</Text>
+            <Text style={styles.emptyText}>When a pet owner accepts your offer or books your care, active details appear here.</Text>
           </View>
         ) : (
           active.map((b) => (
@@ -128,6 +135,7 @@ export const HelperHomeScreen = ({ navigation }: any) => {
               <TouchableOpacity
                 style={styles.chatButton}
                 onPress={() => navigation.navigate('Chat', { bookingId: b.id })}
+                activeOpacity={0.8}
               >
                 <Text style={styles.chatButtonText}>💬 Message {b.owner?.name}</Text>
               </TouchableOpacity>
@@ -145,7 +153,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8fafc',
   },
   headerCard: {
-    backgroundColor: '#0f172a',
+    backgroundColor: '#0f766e',
     padding: 24,
     paddingTop: 48,
     borderBottomLeftRadius: 28,
@@ -159,7 +167,7 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#2dd4bf',
+    color: '#99f6e4',
     textTransform: 'uppercase',
   },
   welcomeText: {
@@ -170,10 +178,10 @@ const styles = StyleSheet.create({
   },
   subWelcomeText: {
     fontSize: 12,
-    color: '#94a3b8',
+    color: '#ccfbf1',
   },
   logoutBtn: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(255,255,255,0.2)',
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 10,
@@ -187,20 +195,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    padding: 12,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
     borderRadius: 14,
     marginTop: 18,
   },
   availabilityLabel: {
-    color: '#ffffff',
     fontSize: 13,
     fontWeight: '700',
+    color: '#ffffff',
   },
   metricsGrid: {
     flexDirection: 'row',
-    padding: 16,
-    gap: 10,
+    padding: 20,
+    gap: 12,
   },
   metricBox: {
     flex: 1,
@@ -212,20 +221,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   metricLabel: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     color: '#64748b',
-    textTransform: 'uppercase',
   },
   metricValue: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '800',
     color: '#0f172a',
     marginTop: 4,
   },
   section: {
     paddingHorizontal: 20,
-    marginBottom: 16,
+    paddingBottom: 20,
   },
   sectionTitle: {
     fontSize: 16,
@@ -234,12 +242,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   jobsBanner: {
-    backgroundColor: '#0d9488',
-    padding: 16,
-    borderRadius: 18,
+    backgroundColor: '#0f766e',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    padding: 18,
+    borderRadius: 18,
   },
   jobsBannerTitle: {
     color: '#ffffff',
@@ -254,19 +262,7 @@ const styles = StyleSheet.create({
   jobsBannerArrow: {
     color: '#ffffff',
     fontSize: 18,
-    fontWeight: '700',
-  },
-  emptyCard: {
-    backgroundColor: '#ffffff',
-    padding: 24,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    alignItems: 'center',
-  },
-  emptyText: {
-    color: '#94a3b8',
-    fontSize: 13,
+    fontWeight: '800',
   },
   jobCard: {
     backgroundColor: '#ffffff',
@@ -287,9 +283,9 @@ const styles = StyleSheet.create({
     color: '#0f172a',
   },
   jobPrice: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '800',
-    color: '#0d9488',
+    color: '#0f766e',
   },
   jobTime: {
     fontSize: 12,
@@ -311,6 +307,30 @@ const styles = StyleSheet.create({
   chatButtonText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#0d9488',
+    color: '#0f766e',
+  },
+  emptyCard: {
+    backgroundColor: '#ffffff',
+    padding: 24,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    alignItems: 'center',
+  },
+  emptyEmoji: {
+    fontSize: 32,
+    marginBottom: 8,
+  },
+  emptyTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1e293b',
+    marginBottom: 4,
+  },
+  emptyText: {
+    fontSize: 12,
+    color: '#64748b',
+    textAlign: 'center',
+    lineHeight: 18,
   },
 });

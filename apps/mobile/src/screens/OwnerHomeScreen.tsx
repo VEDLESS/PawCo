@@ -48,10 +48,10 @@ export const OwnerHomeScreen = ({ navigation }: any) => {
         <View style={styles.headerTop}>
           <View>
             <Text style={styles.badgeText}>🐾 Pet Parent</Text>
-            <Text style={styles.welcomeText}>Hi, {user?.name}!</Text>
-            <Text style={styles.subWelcomeText}>{pets.length} pets registered</Text>
+            <Text style={styles.welcomeText}>Hi, {user?.name || 'Pet Parent'}!</Text>
+            <Text style={styles.subWelcomeText}>{pets.length} companion{pets.length === 1 ? '' : 's'} registered</Text>
           </View>
-          <TouchableOpacity onPress={logout} style={styles.logoutBtn}>
+          <TouchableOpacity onPress={logout} style={styles.logoutBtn} activeOpacity={0.8}>
             <Text style={styles.logoutText}>Sign Out</Text>
           </TouchableOpacity>
         </View>
@@ -60,16 +60,23 @@ export const OwnerHomeScreen = ({ navigation }: any) => {
         <TouchableOpacity
           style={styles.ctaButton}
           onPress={() => navigation.navigate('CreateRequest')}
+          activeOpacity={0.85}
         >
           <Text style={styles.ctaButtonText}>+ Request Pet Care</Text>
         </TouchableOpacity>
       </View>
 
       {/* Active Bookings Section */}
-      {activeBookings.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Active Bookings</Text>
-          {activeBookings.map((b) => (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Active Bookings</Text>
+        {activeBookings.length === 0 ? (
+          <View style={styles.emptyCard}>
+            <Text style={styles.emptyEmoji}>📋</Text>
+            <Text style={styles.emptyTitle}>No active bookings</Text>
+            <Text style={styles.emptyText}>When you book care for your pet, the schedule and helper details will appear here.</Text>
+          </View>
+        ) : (
+          activeBookings.map((b) => (
             <View key={b.id} style={styles.bookingCard}>
               <View style={styles.bookingHeader}>
                 <Text style={styles.bookingService}>
@@ -84,32 +91,44 @@ export const OwnerHomeScreen = ({ navigation }: any) => {
               <TouchableOpacity
                 style={styles.chatButton}
                 onPress={() => navigation.navigate('Chat', { bookingId: b.id })}
+                activeOpacity={0.8}
               >
                 <Text style={styles.chatButtonText}>💬 Message Helper</Text>
               </TouchableOpacity>
             </View>
-          ))}
-        </View>
-      )}
+          ))
+        )}
+      </View>
 
       {/* Pets List */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>My Pets ({pets.length})</Text>
-        {pets.map((p) => (
-          <View key={p.id} style={styles.petCard}>
-            <Image
-              source={{ uri: p.image || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=200&h=200&fit=crop' }}
-              style={styles.petImage}
-            />
-            <View style={styles.petInfo}>
-              <Text style={styles.petName}>{p.name}</Text>
-              <Text style={styles.petBreed}>{p.breed || p.species} • {p.age || 2} yrs</Text>
-              {p.medicalNotes ? (
-                <Text style={styles.petNotes} numberOfLines={1}>⚠️ {p.medicalNotes}</Text>
-              ) : null}
-            </View>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>My Companions ({pets.length})</Text>
+        </View>
+
+        {pets.length === 0 ? (
+          <View style={styles.emptyCard}>
+            <Text style={styles.emptyEmoji}>🐕</Text>
+            <Text style={styles.emptyTitle}>No pets added yet</Text>
+            <Text style={styles.emptyText}>Add your dog, cat, or other pet to get personalized care from verified helpers.</Text>
           </View>
-        ))}
+        ) : (
+          pets.map((p) => (
+            <View key={p.id} style={styles.petCard}>
+              <Image
+                source={{ uri: p.image || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=200&h=200&fit=crop' }}
+                style={styles.petImage}
+              />
+              <View style={styles.petInfo}>
+                <Text style={styles.petName}>{p.name}</Text>
+                <Text style={styles.petBreed}>{p.breed || p.species} • {p.age ? `${p.age} yrs` : 'Companion'}</Text>
+                {p.medicalNotes ? (
+                  <Text style={styles.petNotes} numberOfLines={1}>⚠️ {p.medicalNotes}</Text>
+                ) : null}
+              </View>
+            </View>
+          ))
+        )}
       </View>
     </ScrollView>
   );
@@ -121,7 +140,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8fafc',
   },
   headerCard: {
-    backgroundColor: '#0d9488',
+    backgroundColor: '#0f766e',
     padding: 24,
     paddingTop: 48,
     borderBottomLeftRadius: 28,
@@ -173,6 +192,13 @@ const styles = StyleSheet.create({
   },
   section: {
     padding: 20,
+    paddingTop: 16,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   sectionTitle: {
     fontSize: 16,
@@ -201,7 +227,7 @@ const styles = StyleSheet.create({
   bookingStatus: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#0d9488',
+    color: '#0f766e',
     backgroundColor: '#ccfbf1',
     paddingVertical: 3,
     paddingHorizontal: 8,
@@ -228,7 +254,7 @@ const styles = StyleSheet.create({
   chatButtonText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#0d9488',
+    color: '#0f766e',
   },
   petCard: {
     flexDirection: 'row',
@@ -264,5 +290,30 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#b45309',
     marginTop: 2,
+  },
+  emptyCard: {
+    backgroundColor: '#ffffff',
+    padding: 24,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  emptyEmoji: {
+    fontSize: 32,
+    marginBottom: 8,
+  },
+  emptyTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1e293b',
+    marginBottom: 4,
+  },
+  emptyText: {
+    fontSize: 12,
+    color: '#64748b',
+    textAlign: 'center',
+    lineHeight: 18,
   },
 });

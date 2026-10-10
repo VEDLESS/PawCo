@@ -130,7 +130,7 @@ export default function HomePage() {
     },
     {
       quote:
-        'When Rocky had an urgent allergic reaction on a Saturday evening, PetCo connected me with an emergency transit helper within 10 minutes. Invaluable community support.',
+        'When Rocky had an urgent allergic reaction on a Saturday evening, PawCo connected me with an emergency transit helper within 10 minutes. Invaluable community support.',
       author: 'David Miller',
       pet: 'Dad to Rocky (French Bulldog)',
       image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop&crop=face',

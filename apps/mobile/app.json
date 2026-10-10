@@ -1,26 +1,26 @@
 {
   "expo": {
-    "name": "PetCo",
-    "slug": "petco-app",
+    "name": "PawCo",
+    "slug": "pawco-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "backgroundColor": "#0d9488"
+      "backgroundColor": "#0f766e"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.petco.app",
+      "bundleIdentifier": "com.pawco.app",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "PetCo requires your location to discover nearby verified pet care providers and service requests."
+        "NSLocationWhenInUseUsageDescription": "PawCo requires your location to discover nearby verified pet care providers and service requests."
       }
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#0d9488"
+        "backgroundColor": "#0f766e"
       },
-      "package": "com.petco.app",
+      "package": "com.pawco.app",
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION"
