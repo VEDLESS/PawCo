@@ -202,30 +202,19 @@ export default function HomePage() {
                 <div className="relative rounded-3xl overflow-hidden shadow-soft-xl border border-stone-200/80 bg-white">
                   <img
                     src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800&h=700&fit=crop"
-                    alt="Happy playful dog and cat"
+                    alt="Happy pets outdoors"
                     className="w-full h-80 sm:h-96 object-cover"
                   />
-                  <div className="p-5 bg-gradient-to-t from-white via-white/95 to-transparent -mt-16 relative z-10 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="text-sm font-extrabold text-slate-900">Milo & Luna's Afternoon Care</h4>
-                        <p className="text-xs text-stone-500">Mission District, San Francisco</p>
-                      </div>
-                      <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 font-extrabold text-xs rounded-full">
-                        In Progress
-                      </span>
-                    </div>
-                  </div>
                 </div>
 
-                {/* Floating Rating Card */}
-                <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-2xl shadow-soft-lg border border-stone-200/80 flex items-center gap-3 animate-in fade-in zoom-in-95">
-                  <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-black">
+                {/* Floating Rating Badge */}
+                <div className="absolute -bottom-5 -left-5 bg-white p-4 rounded-2xl shadow-soft-xl border border-stone-200/80 flex items-center gap-3.5 animate-in fade-in zoom-in-95 backdrop-blur-sm">
+                  <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-black text-lg shadow-inner">
                     ★
                   </div>
                   <div>
-                    <span className="text-sm font-black text-slate-900 block">4.96 / 5.0 Rating</span>
-                    <span className="text-[11px] text-stone-500 font-semibold">Over 1,200+ local pet bookings</span>
+                    <span className="text-sm font-black text-slate-900 block leading-tight">4.96 / 5.0 Rating</span>
+                    <span className="text-[11px] text-stone-500 font-semibold block mt-0.5">Over 1,200+ verified pet bookings</span>
                   </div>
                 </div>
               </div>
